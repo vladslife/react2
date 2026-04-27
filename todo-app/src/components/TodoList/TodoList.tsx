@@ -23,7 +23,7 @@ const ButtonGroup = styled.div`
 `;
 
 const FilterButton = styled.button<{
-  active: boolean;
+  $active: boolean;
   theme: 'light' | 'dark';
 }>`
   padding: 8px 16px;
@@ -33,8 +33,8 @@ const FilterButton = styled.button<{
   font-size: 14px;
   transition: all 0.2s ease;
 
-  background: ${({ active, theme }) =>
-    active
+  background: ${({ $active, theme }) =>
+    $active
       ? theme === 'light'
         ? '#007bff'
         : '#0056b3'
@@ -42,8 +42,8 @@ const FilterButton = styled.button<{
         ? '#e0e0e0'
         : '#3d3d3d'};
 
-  color: ${({ active, theme }) =>
-    active ? '#fff' : theme === 'light' ? '#1a1a1a' : '#fff'};
+  color: ${({ $active, theme }) =>
+    $active ? '#fff' : theme === 'light' ? '#1a1a1a' : '#fff'};
 
   &:hover {
     transform: translateY(-2px);
@@ -89,10 +89,14 @@ const TodoList = ({ todos, onToggle, onDelete, onEdit }: Props) => {
   });
 
   const sortedAndFilteredTodos = [...filteredTodos].sort((a, b) => {
+
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+
     if (sort === 'newest') {
-      return b.createdAt.getTime() - a.createdAt.getTime();
+      return dateB - dateA;
     } else {
-      return a.createdAt.getTime() - b.createdAt.getTime();
+      return dateA - dateB;
     }
   });
 
@@ -118,7 +122,7 @@ const TodoList = ({ todos, onToggle, onDelete, onEdit }: Props) => {
       <ControlsPanel theme={theme}>
         <ButtonGroup>
           <FilterButton
-            active={filter === 'all'}
+            $active={filter === 'all'}
             onClick={() => setFilter('all')}
             theme={theme}
           >
@@ -126,7 +130,7 @@ const TodoList = ({ todos, onToggle, onDelete, onEdit }: Props) => {
           </FilterButton>
 
           <FilterButton
-            active={filter === 'active'}
+            $active={filter === 'active'}
             onClick={() => setFilter('active')}
             theme={theme}
           >
@@ -134,7 +138,7 @@ const TodoList = ({ todos, onToggle, onDelete, onEdit }: Props) => {
           </FilterButton>
 
           <FilterButton
-            active={filter === 'completed'}
+            $active={filter === 'completed'}
             onClick={() => setFilter('completed')}
             theme={theme}
           >

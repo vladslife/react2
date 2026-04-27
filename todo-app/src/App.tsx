@@ -1,48 +1,62 @@
-import { useState, useEffect } from 'react';
-import { getTodosFromStorage, saveTodosToStorage } from '@/utils/localStorage';
-import type { Todo } from '@/types/types';
+import { useEffect } from 'react';
 import { TodoForm } from '@/components/TodoForm';
 import { TodoList } from '@/components/TodoList';
 import { GlobalStyles } from '@/styles/GlobalStyles';
 import { AppContainer } from '@/components/AppContainer';
 import { Title } from '@/components/Title';
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { createTodoThunk, fetchTodosThunk, toggleTodoThunk, deleteTodoThunk, updateTodoThunk } from '@/store/slices/todoSlice';
 
 function App() {
-  const [todos, setTodos] = useState<Todo[]>(getTodosFromStorage());
+  const dispatch = useAppDispatch();
+  const { todos, loading, error, page, limit, filter } = useAppSelector(state => state.todos);
 
   useEffect(() => {
-    saveTodosToStorage(todos);
-  }, [todos]);
+    dispatch(fetchTodosThunk({ page, limit, filter}));
+  }, [dispatch, page, limit, filter]);
 
-  const toggleTodo = (id: number) => {
-    setTodos((prev) =>
-      prev.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
+  const handleToggleTodo = (id: number) => {
+    dispatch(toggleTodoThunk(id));
   };
 
-  const deleteTodo = (id: number) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
+  const handleDeleteTodo = (id: number) => {
+    dispatch(deleteTodoThunk(id));
   };
 
-  const editTodo = (id: number, newText: string) => {
-    setTodos(
-      todos.map((todo) => (todo.id === id ? { ...todo, text: newText } : todo))
-    );
+  const handleEditTodo = (id: number, newText: string) => {
+    dispatch(updateTodoThunk({ id, data: { text: newText } }));
   };
 
   const handleAddTodo = (text: string) => {
-    const newTodo: Todo = {
-      id: Date.now(),
-      text: text,
-      completed: false,
-      createdAt: new Date(),
-    };
-
-    setTodos([...todos, newTodo]);
+    dispatch(createTodoThunk(text)); 
   };
+
+  if (loading) {
+    return (
+      <>
+        <GlobalStyles />
+        <AppContainer>
+          <ThemeToggleButton />
+          <Title>Задачи</Title>
+          <div>Загрузка...</div>
+        </AppContainer>
+      </>
+    );
+  } 
+
+  if (error) {
+    return (
+      <>
+        <GlobalStyles />
+        <AppContainer>
+          <ThemeToggleButton />
+          <Title>Задачи</Title>
+          <div>Ошибка: {error}</div>
+        </AppContainer>
+      </>
+  );
+}
 
   return (
     <>
@@ -53,9 +67,9 @@ function App() {
         <TodoForm onAdd={handleAddTodo} />
         <TodoList
           todos={todos}
-          onToggle={toggleTodo}
-          onDelete={deleteTodo}
-          onEdit={editTodo}
+          onToggle={handleToggleTodo}
+          onDelete={handleDeleteTodo}
+          onEdit={handleEditTodo}
         />
       </AppContainer>
     </>
