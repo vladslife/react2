@@ -6,11 +6,11 @@ import { AppContainer } from '@/components/AppContainer';
 import { Title } from '@/components/Title';
 import { ThemeToggleButton } from '@/components/ThemeToggleButton';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { createTodoThunk, fetchTodosThunk, toggleTodoThunk, deleteTodoThunk, updateTodoThunk } from '@/store/slices/todoSlice';
+import { createTodoThunk, fetchTodosThunk, toggleTodoThunk, deleteTodoThunk, updateTodoThunk, setLimit, setPage } from '@/store/slices/todoSlice';
 
 function App() {
   const dispatch = useAppDispatch();
-  const { todos, loading, error, page, limit, filter } = useAppSelector(state => state.todos);
+  const { todos, loading, error, page, limit, filter, totalPages } = useAppSelector(state => state.todos);
 
   useEffect(() => {
     dispatch(fetchTodosThunk({ page, limit, filter}));
@@ -70,6 +70,11 @@ function App() {
           onToggle={handleToggleTodo}
           onDelete={handleDeleteTodo}
           onEdit={handleEditTodo}
+          page={page}
+          limit={limit}
+          totalPages={totalPages}
+          onPageChange={(newPage) => dispatch(setPage(newPage))}
+          onLimitChange={(newLimit) => dispatch(setLimit(newLimit))}
         />
       </AppContainer>
     </>

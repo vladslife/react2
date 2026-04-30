@@ -5,6 +5,7 @@ import { useTheme } from '@/context/ThemeContext';
 import styled from 'styled-components';
 import { EmptyMessage } from '@/components/EmptyMessage/';
 import { TodoListContainer } from '@/components/TodoListContainer';
+import { Pagination } from '@mui/material';
 
 const ControlsPanel = styled.div<{ theme: 'light' | 'dark' }>`
   display: flex;
@@ -69,12 +70,17 @@ interface Props {
   onToggle: (id: number) => void;
   onDelete: (id: number) => void;
   onEdit: (id: number, newText: string) => void;
+  page: number;
+  limit: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onLimitChange: (limit: number) => void;
 }
 
 type FilterType = 'all' | 'completed' | 'active';
 type SortType = 'newest' | 'oldest';
 
-const TodoList = ({ todos, onToggle, onDelete, onEdit }: Props) => {
+const TodoList = ({ todos, onToggle, onDelete, onEdit, page, limit, totalPages, onPageChange, onLimitChange }: Props) => {
   const { theme } = useTheme();
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -99,6 +105,10 @@ const TodoList = ({ todos, onToggle, onDelete, onEdit }: Props) => {
       return dateA - dateB;
     }
   });
+
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+    onPageChange(value);
+  };
 
   const totalTodos = todos.length;
   const completedCount = todos.filter((t) => t.completed).length;
@@ -162,6 +172,7 @@ const TodoList = ({ todos, onToggle, onDelete, onEdit }: Props) => {
       {sortedAndFilteredTodos.length === 0 ? (
         <EmptyMessage>Задачи не найдены</EmptyMessage>
       ) : (
+      <>
         <TodoListContainer>
           {sortedAndFilteredTodos.map((todo) => (
             <TodoItem
@@ -176,6 +187,46 @@ const TodoList = ({ todos, onToggle, onDelete, onEdit }: Props) => {
             />
           ))}
         </TodoListContainer>
+
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '20px',
+          padding: '10px 0'
+        }}>
+          <div>
+            <span style={{ marginRight: '10px' }}>Задач на странице:</span>
+            <select
+              value={limit}
+              onChange={(e) => onLimitChange(Number(e.target.value))}
+              style={{
+                padding: '5px 10px',
+                borderRadius: '6px',
+                border: `1px solid ${theme === 'light' ? '#ddd' : '#555'}`,
+                background: theme === 'light' ? '#fff' : '#3d3d3d',
+                color: theme === 'light' ? '#1a1a1a' : '#fff'
+              }}
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={handlePageChange}
+            color='primary'
+            sx={{
+              '& .MuiPaginationItem-root' : {
+                color: theme === 'light' ? '#1a1a1a' : '#fff',
+              }
+            }}
+          />
+        </div>
+      </>
       )}
     </div>
   );
