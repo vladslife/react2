@@ -26,7 +26,11 @@ const TodoItem = ({
 }: Props) => {
   return (
     <TodoItemContainer>
-      <Checkbox checked={todo.completed} onChange={() => onToggle(todo.id)} disabled={isEditing}/>
+      <Checkbox
+        checked={todo.completed}
+        onChange={() => onToggle(todo.id)}
+        disabled={isEditing}
+      />
 
       {isEditing ? (
         <TodoEditForm

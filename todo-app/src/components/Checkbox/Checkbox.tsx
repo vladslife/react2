@@ -20,7 +20,12 @@ interface Props {
 
 const Checkbox = ({ checked, onChange, disabled = false }: Props) => {
   return (
-    <StyledCheckbox type="checkbox" checked={checked} onChange={onChange} disabled={disabled} />
+    <StyledCheckbox
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      disabled={disabled}
+    />
   );
 };
 

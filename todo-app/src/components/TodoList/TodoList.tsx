@@ -80,7 +80,17 @@ interface Props {
 type FilterType = 'all' | 'completed' | 'active';
 type SortType = 'newest' | 'oldest';
 
-const TodoList = ({ todos, onToggle, onDelete, onEdit, page, limit, totalPages, onPageChange, onLimitChange }: Props) => {
+const TodoList = ({
+  todos,
+  onToggle,
+  onDelete,
+  onEdit,
+  page,
+  limit,
+  totalPages,
+  onPageChange,
+  onLimitChange,
+}: Props) => {
   const { theme } = useTheme();
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -95,7 +105,6 @@ const TodoList = ({ todos, onToggle, onDelete, onEdit, page, limit, totalPages, 
   });
 
   const sortedAndFilteredTodos = [...filteredTodos].sort((a, b) => {
-
     const dateA = new Date(a.createdAt).getTime();
     const dateB = new Date(b.createdAt).getTime();
 
@@ -106,7 +115,10 @@ const TodoList = ({ todos, onToggle, onDelete, onEdit, page, limit, totalPages, 
     }
   });
 
-  const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (
+    _event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
     onPageChange(value);
   };
 
@@ -172,61 +184,63 @@ const TodoList = ({ todos, onToggle, onDelete, onEdit, page, limit, totalPages, 
       {sortedAndFilteredTodos.length === 0 ? (
         <EmptyMessage>Задачи не найдены</EmptyMessage>
       ) : (
-      <>
-        <TodoListContainer>
-          {sortedAndFilteredTodos.map((todo) => (
-            <TodoItem
-              key={todo.id}
-              todo={todo}
-              isEditing={editingId === todo.id}
-              onToggle={onToggle}
-              onStartEdit={startEdit}
-              onSaveEdit={saveEdit}
-              onCancelEdit={cancelEdit}
-              onDelete={onDelete}
-            />
-          ))}
-        </TodoListContainer>
+        <>
+          <TodoListContainer>
+            {sortedAndFilteredTodos.map((todo) => (
+              <TodoItem
+                key={todo.id}
+                todo={todo}
+                isEditing={editingId === todo.id}
+                onToggle={onToggle}
+                onStartEdit={startEdit}
+                onSaveEdit={saveEdit}
+                onCancelEdit={cancelEdit}
+                onDelete={onDelete}
+              />
+            ))}
+          </TodoListContainer>
 
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: '20px',
-          padding: '10px 0'
-        }}>
-          <div>
-            <span style={{ marginRight: '10px' }}>Задач на странице:</span>
-            <select
-              value={limit}
-              onChange={(e) => onLimitChange(Number(e.target.value))}
-              style={{
-                padding: '5px 10px',
-                borderRadius: '6px',
-                border: `1px solid ${theme === 'light' ? '#ddd' : '#555'}`,
-                background: theme === 'light' ? '#fff' : '#3d3d3d',
-                color: theme === 'light' ? '#1a1a1a' : '#fff'
-              }}
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-            </select>
-          </div>
-
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={handlePageChange}
-            color='primary'
-            sx={{
-              '& .MuiPaginationItem-root' : {
-                color: theme === 'light' ? '#1a1a1a' : '#fff',
-              }
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '20px',
+              padding: '10px 0',
             }}
-          />
-        </div>
-      </>
+          >
+            <div>
+              <span style={{ marginRight: '10px' }}>Задач на странице:</span>
+              <select
+                value={limit}
+                onChange={(e) => onLimitChange(Number(e.target.value))}
+                style={{
+                  padding: '5px 10px',
+                  borderRadius: '6px',
+                  border: `1px solid ${theme === 'light' ? '#ddd' : '#555'}`,
+                  background: theme === 'light' ? '#fff' : '#3d3d3d',
+                  color: theme === 'light' ? '#1a1a1a' : '#fff',
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={handlePageChange}
+              color="primary"
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  color: theme === 'light' ? '#1a1a1a' : '#fff',
+                },
+              }}
+            />
+          </div>
+        </>
       )}
     </div>
   );
