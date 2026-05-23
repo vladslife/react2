@@ -1,9 +1,25 @@
 import type { Todo } from '@/types/types';
-import { TodoEditForm } from '@/components/TodoEditForm';
-import { TodoText } from '@/components/TodoText';
-import { Checkbox } from '@/components/Checkbox';
-import { ActionButton } from '@/components/ActionButton';
-import { TodoItemContainer } from '@/components/TodoItemContainer';
+import { TodoEditForm } from '@/widgets/TodoEditForm';
+import { TodoText } from '@/widgets/TodoText';
+import { Checkbox } from '@/ui/Checkbox';
+import { ActionButton } from '@/ui/ActionButton';
+import styled from 'styled-components';
+import { useTheme } from '@/context/ThemeContext';
+
+const StyledContainer = styled.li<{ theme: 'light' | 'dark' }>`
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 15px;
+  background: ${({ theme }) => (theme === 'light' ? '#f9f9f9' : '#363636')};
+  border-radius: 8px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+`;
 
 interface Props {
   todo: Todo;
@@ -24,8 +40,10 @@ const TodoItem = ({
   onCancelEdit,
   onDelete,
 }: Props) => {
+  const { theme } = useTheme();
+
   return (
-    <TodoItemContainer>
+    <StyledContainer theme={theme}>
       <Checkbox
         checked={todo.completed}
         onChange={() => onToggle(todo.id)}
@@ -52,7 +70,7 @@ const TodoItem = ({
           </ActionButton>
         </>
       )}
-    </TodoItemContainer>
+    </StyledContainer>
   );
 };
 

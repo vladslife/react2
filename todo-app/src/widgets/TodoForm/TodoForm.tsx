@@ -1,6 +1,8 @@
 import { useState, type ChangeEvent, type SyntheticEvent } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import styled from 'styled-components';
+import { useAppDispatch } from '@/store/hooks';
+import { createTodoThunk } from '@/store/slices/todoSlice';
 
 const Form = styled.form`
   margin-bottom: 20px;
@@ -46,12 +48,9 @@ const ErrorMessage = styled.p<{ theme: 'light' | 'dark' }>`
   font-size: 14px;
 `;
 
-interface Props {
-  onAdd: (text: string) => void;
-}
-
-const TodoForm = ({ onAdd }: Props) => {
+const TodoForm = () => {
   const { theme } = useTheme();
+  const dispatch = useAppDispatch();
   const [inputValue, setInputValue] = useState<string>('');
   const [error, setError] = useState<string>('');
 
@@ -68,7 +67,7 @@ const TodoForm = ({ onAdd }: Props) => {
       return;
     }
 
-    onAdd(inputValue.trim());
+    dispatch(createTodoThunk(inputValue.trim()));
     setInputValue('');
     setError('');
   };

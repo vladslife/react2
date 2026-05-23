@@ -15,7 +15,7 @@ todo-app/
 │ │ ├── ThemeToggleButton/ # Кнопка переключения темы
 │ │ ├── Title/ # Заголовок
 │ │ ├── TodoEditForm/ # Форма редактирования
-│ │ ├── TodoForm/ # Форма добавления 
+│ │ ├── TodoForm/ # Форма добавления
 │ │ ├── TodoItem/ # Отдельная задача
 │ │ ├── TodoItemContainer/ # Контейнер задачи
 │ │ ├── TodoList/ # Список задач + пагинация

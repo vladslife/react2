@@ -1,11 +1,24 @@
 import { useState } from 'react';
 import type { Todo } from '@/types/types';
-import { TodoItem } from '@/components/TodoItem';
+import { TodoItem } from '@/widgets/TodoItem';
 import { useTheme } from '@/context/ThemeContext';
 import styled from 'styled-components';
-import { EmptyMessage } from '@/components/EmptyMessage/';
-import { TodoListContainer } from '@/components/TodoListContainer';
-import { Pagination } from '@mui/material';
+import { EmptyMessage } from '@/shared/EmptyMessage';
+import { Pagination as MUIPagination } from '@mui/material';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  toggleTodoThunk,
+  deleteTodoThunk,
+  updateTodoThunk,
+  setPage,
+  setLimit,
+} from '@/store/slices/todoSlice';
+import {
+  selectTodos,
+  selectPage,
+  selectLimit,
+  selectTotalPages,
+} from '@/store/slices/todoSlice';
 
 const ControlsPanel = styled.div<{ theme: 'light' | 'dark' }>`
   display: flex;
@@ -16,6 +29,23 @@ const ControlsPanel = styled.div<{ theme: 'light' | 'dark' }>`
   border-radius: 12px;
   flex-wrap: wrap;
   justify-content: space-between;
+`;
+
+const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 10px 0;
+`;
+
+const StyledSelect = styled.select<{ theme: 'light' | 'dark' }>`
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid ${({ theme }) => (theme === 'light' ? '#ddd' : '#555')};
+  background: ${({ theme }) => (theme === 'light' ? '#fff' : '#3d3d3d')};
+  color: ${({ theme }) => (theme === 'light' ? '#1a1a1a' : '#fff')};
+  cursor: pointer;
 `;
 
 const ButtonGroup = styled.div`
@@ -65,41 +95,40 @@ const Label = styled.label<{ theme: 'light' | 'dark' }>`
   color: ${({ theme }) => (theme === 'light' ? '#1a1a1a' : '#fff')};
 `;
 
-interface Props {
-  todos: Todo[];
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
-  onEdit: (id: number, newText: string) => void;
-  page: number;
-  limit: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  onLimitChange: (limit: number) => void;
-}
+const LabelText = styled.span`
+  margin-right: 10px;
+`;
+
+const StyledPagination = styled(MUIPagination)<{ theme: 'light' | 'dark' }>`
+  & .MuiPaginationItem-root {
+    color: ${({ theme }) => (theme === 'light' ? '#1a1a1a' : '#fff')};
+  }
+`;
+
+const TodoListContainer = styled.ul`
+  list-style: none;
+  padding: 0;
+`;
 
 type FilterType = 'all' | 'completed' | 'active';
 type SortType = 'newest' | 'oldest';
 
-const TodoList = ({
-  todos,
-  onToggle,
-  onDelete,
-  onEdit,
-  page,
-  limit,
-  totalPages,
-  onPageChange,
-  onLimitChange,
-}: Props) => {
+const TodoList = () => {
   const { theme } = useTheme();
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const dispatch = useAppDispatch();
 
-  const [filter, setFilter] = useState<FilterType>('all');
+  const todos = useAppSelector(selectTodos);
+  const page = useAppSelector(selectPage);
+  const limit = useAppSelector(selectLimit);
+  const totalPages = useAppSelector(selectTotalPages);
+
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [currentFilter, setCurrentFilter] = useState<FilterType>('all');
   const [sort, setSort] = useState<SortType>('newest');
 
   const filteredTodos = todos.filter((todo) => {
-    if (filter === 'completed') return todo.completed;
-    if (filter === 'active') return !todo.completed;
+    if (currentFilter === 'completed') return todo.completed;
+    if (currentFilter === 'active') return !todo.completed;
 
     return true;
   });
@@ -115,11 +144,16 @@ const TodoList = ({
     }
   });
 
-  const handlePageChange = (
-    _event: React.ChangeEvent<unknown>,
-    value: number
-  ) => {
-    onPageChange(value);
+  const handleToggleTodo = (id: number) => {
+    dispatch(toggleTodoThunk(id));
+  };
+
+  const handleDeleteTodo = (id: number) => {
+    dispatch(deleteTodoThunk(id));
+  };
+
+  const handleEditTodo = (id: number, newText: string) => {
+    dispatch(updateTodoThunk({ id, data: { text: newText } }));
   };
 
   const totalTodos = todos.length;
@@ -131,7 +165,7 @@ const TodoList = ({
   };
 
   const saveEdit = (id: number, newText: string) => {
-    onEdit(id, newText);
+    handleEditTodo(id, newText);
     setEditingId(null);
   };
 
@@ -144,24 +178,24 @@ const TodoList = ({
       <ControlsPanel theme={theme}>
         <ButtonGroup>
           <FilterButton
-            $active={filter === 'all'}
-            onClick={() => setFilter('all')}
+            $active={currentFilter === 'all'}
+            onClick={() => setCurrentFilter('all')}
             theme={theme}
           >
             Все ({totalTodos})
           </FilterButton>
 
           <FilterButton
-            $active={filter === 'active'}
-            onClick={() => setFilter('active')}
+            $active={currentFilter === 'active'}
+            onClick={() => setCurrentFilter('active')}
             theme={theme}
           >
             Активные ({activeCount})
           </FilterButton>
 
           <FilterButton
-            $active={filter === 'completed'}
-            onClick={() => setFilter('completed')}
+            $active={currentFilter === 'completed'}
+            onClick={() => setCurrentFilter('completed')}
             theme={theme}
           >
             Выполненные ({completedCount})
@@ -191,55 +225,37 @@ const TodoList = ({
                 key={todo.id}
                 todo={todo}
                 isEditing={editingId === todo.id}
-                onToggle={onToggle}
+                onToggle={handleToggleTodo}
                 onStartEdit={startEdit}
                 onSaveEdit={saveEdit}
                 onCancelEdit={cancelEdit}
-                onDelete={onDelete}
+                onDelete={handleDeleteTodo}
               />
             ))}
           </TodoListContainer>
 
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: '20px',
-              padding: '10px 0',
-            }}
-          >
+          <PaginationContainer>
             <div>
-              <span style={{ marginRight: '10px' }}>Задач на странице:</span>
-              <select
+              <LabelText>Задач на странице:</LabelText>
+              <StyledSelect
                 value={limit}
-                onChange={(e) => onLimitChange(Number(e.target.value))}
-                style={{
-                  padding: '5px 10px',
-                  borderRadius: '6px',
-                  border: `1px solid ${theme === 'light' ? '#ddd' : '#555'}`,
-                  background: theme === 'light' ? '#fff' : '#3d3d3d',
-                  color: theme === 'light' ? '#1a1a1a' : '#fff',
-                }}
+                onChange={(e) => dispatch(setLimit(Number(e.target.value)))}
+                theme={theme}
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={20}>20</option>
-              </select>
+              </StyledSelect>
             </div>
 
-            <Pagination
+            <StyledPagination
               count={totalPages}
               page={page}
-              onChange={handlePageChange}
+              onChange={(_, value) => dispatch(setPage(value))}
               color="primary"
-              sx={{
-                '& .MuiPaginationItem-root': {
-                  color: theme === 'light' ? '#1a1a1a' : '#fff',
-                },
-              }}
+              theme={theme}
             />
-          </div>
+          </PaginationContainer>
         </>
       )}
     </div>
